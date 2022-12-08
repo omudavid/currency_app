@@ -44,7 +44,7 @@
             android:id="@+id/fragment_currency_converter_to_atv"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:dropDownAnchor="@+id/fragment_edit_profile_residential_state_tl"
+            android:dropDownAnchor="@+id/fragment_currency_converter_to_itl"
             android:hint="Select"
             android:inputType="none" />
     </com.google.android.material.textfield.TextInputLayout>
@@ -63,7 +63,7 @@
             android:id="@+id/fragment_currency_converter_from_atv"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:dropDownAnchor="@+id/fragment_edit_profile_residential_state_tl"
+            android:dropDownAnchor="@+id/fragment_currency_converter_from_itl"
             android:hint="Select"
             android:inputType="none" />
 
@@ -111,6 +111,8 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/fragment_currency_converter_to_value_et"
             style="@style/TextFieldTextInputEditTextStyle"
+            android:cursorVisible="false"
+            android:focusable="false"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="number"

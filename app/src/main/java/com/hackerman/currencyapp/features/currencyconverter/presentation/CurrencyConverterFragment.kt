@@ -1,60 +1,160 @@
 package com.hackerman.currencyapp.features.currencyconverter.presentation
 
 import android.os.Bundle
+import android.os.CountDownTimer
+import android.text.Editable
+import android.text.TextWatcher
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.hackerman.currencyapp.R
+import com.hackerman.currencyapp.common.resource.Resource
+import com.hackerman.currencyapp.databinding.FragmentCurrencyConverterBinding
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [CurrencyConverterFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
+@AndroidEntryPoint
 class CurrencyConverterFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+
+    private var _binding: FragmentCurrencyConverterBinding? = null
+    private val binding get() = _binding!!
+    private var fromCurrencySpinnerIndex = 0
+    private var toCurrencySpinnerIndex = 0
+    private var toCurrency = ""
+    private var fromCurrency = ""
+
+
+    private val viewModel: CurrencyConverterViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_currency_converter, container, false)
+        _binding = FragmentCurrencyConverterBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment CurrencyConverterFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            CurrencyConverterFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        getCurrencySymbolSubscriber()
+        fromCurrencySelected()
+        toCurrencySelected()
+        fromCurrencyInputChanged()
+        getConvertedCurrencySubscriber()
+    }
+
+
+    private fun fromCurrencySelected() {
+        binding.fragmentCurrencyConverterFromAtv.onItemClickListener =
+            AdapterView.OnItemClickListener { parent, view, position, id ->
+                fromCurrencySpinnerIndex = parent.selectedItemPosition + 1
+                fromCurrency = parent.getItemAtPosition(position).toString()
+                val target = binding.fragmentCurrencyConverterToAtv.text.toString()
+                if (target.isNotEmpty()) {
+                    getConvertedCurrency()
                 }
             }
     }
+
+
+    private fun toCurrencySelected() {
+       binding.fragmentCurrencyConverterToAtv.onItemClickListener =
+            AdapterView.OnItemClickListener { parent, view, position, id ->
+                toCurrencySpinnerIndex = parent.selectedItemPosition + 1
+                toCurrency = parent.getItemAtPosition(position).toString()
+                val base = binding.fragmentCurrencyConverterFromAtv.text.toString()
+                if (base.isNotEmpty()) {
+                    getConvertedCurrency()
+                }
+            }
+    }
+
+
+
+
+    private fun getConvertedCurrency() {
+        if(toCurrency.isNotEmpty() && fromCurrency.isNotEmpty()){
+            val amount = binding.fragmentCurrencyConverterFromValueEt.text.toString()
+            println("This amount $amount $fromCurrency $toCurrency")
+            viewModel.getConvertedCurrency(fromCurrency,toCurrency,amount)
+        }
+    }
+
+    private fun fromCurrencyInputChanged(){
+        binding.fragmentCurrencyConverterFromValueEt.addTextChangedListener(object : TextWatcher {
+            var debounceTimer: CountDownTimer? = null
+
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+            override fun afterTextChanged(editable: Editable?) {
+                debounceTimer?.cancel()
+                debounceTimer = object : CountDownTimer(1000, 1500) {
+                    override fun onTick(millisUntilFinished: Long) {}
+                    override fun onFinish() {
+                       getConvertedCurrency()
+                    }
+                }.start()
+            }
+        })
+    }
+
+
+    private fun getCurrencySymbolSubscriber() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.getSymbolsResponse.collectLatest {
+                when (it) {
+                    is Resource.Success -> {
+                        it.data.symbols?.keys?.let { it1 -> setUpCurrencySymbols(it1.toList()) }
+                    }
+                    else -> {
+
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getConvertedCurrencySubscriber() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.getConvertedCurrencyResponse.collectLatest {
+                when (it) {
+                    is Resource.Success -> {
+                       binding.fragmentCurrencyConverterToValueEt.setText(it.data.result.toString())
+                    }
+                    else -> {
+
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setUpCurrencySymbols(list: List<String>) {
+        populateSpinner(
+            list,
+            binding.fragmentCurrencyConverterFromAtv as MaterialAutoCompleteTextView
+        )
+        populateSpinner(
+            list,
+            binding.fragmentCurrencyConverterToAtv as MaterialAutoCompleteTextView
+        )
+    }
+
+    private fun populateSpinner(list: List<String>, view: MaterialAutoCompleteTextView) {
+        val arrayAdapter = ArrayAdapter(requireContext(), R.layout.spinner_list_item, list)
+        view.setAdapter(arrayAdapter)
+    }
+
+
 }

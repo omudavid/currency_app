@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.hackerman.currencyapp">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name=".EntryApplication"
         android:allowBackup="true"

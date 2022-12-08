@@ -6,6 +6,7 @@
         <entry key="app/src/main/res/drawable/ic_swap_arrow.xml" value="0.2085" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.14114583333333333" />
         <entry key="app/src/main/res/layout/fragment_currency_converter.xml" value="0.2820297241210938" />
+        <entry key="app/src/main/res/layout/spinner_list_item.xml" value="0.4036458333333333" />
       </map>
     </option>
   </component>
