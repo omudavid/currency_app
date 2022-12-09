@@ -18,9 +18,7 @@ class GetSymbolsUseCase @Inject constructor(
     operator fun invoke(): Flow<Resource<GetSymbolsResponse>> = flow {
         try {
           emit(Resource.Loading())
-            println("I was completed zz=z")
             val response = repository.getSymbols()
-            println("I was completed zzz $response")
           emit(Resource.Success(response))
         } catch (e: HttpException) {
             val message = errorHandler.parse(e)

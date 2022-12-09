@@ -1,12 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
+    android:id="@+id/fragment_currency_converter"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-
     tools:context=".features.currencyconverter.presentation.CurrencyConverterFragment">
+
+    <ProgressBar
+        android:id="@+id/fragment_currency_converter_pb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/fragment_currency_converter_details_btn"
+        app:layout_constraintEnd_toStartOf="@+id/fragment_currency_converter_to_value_itl"
+        app:layout_constraintStart_toEndOf="@+id/fragment_currency_converter_from_value_itl" />
+
 
     <TextView
         android:id="@+id/fragment_currency_converter_header_tv"
@@ -133,12 +142,10 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/fragment_currency_converter_details_btn"
-
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:text="Details"
-
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/fragment_currency_converter_from_value_itl" />

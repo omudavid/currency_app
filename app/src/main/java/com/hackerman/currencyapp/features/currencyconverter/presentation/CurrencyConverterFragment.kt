@@ -12,8 +12,12 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.hackerman.currencyapp.R
+import com.hackerman.currencyapp.common.extension.hideProgressBar
+import com.hackerman.currencyapp.common.extension.showErrorSnackBar
+import com.hackerman.currencyapp.common.extension.showProgressBar
 import com.hackerman.currencyapp.common.resource.Resource
 import com.hackerman.currencyapp.databinding.FragmentCurrencyConverterBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -48,8 +52,38 @@ class CurrencyConverterFragment : Fragment() {
         getCurrencySymbolSubscriber()
         fromCurrencySelected()
         toCurrencySelected()
+        attachSwapButtonClick()
         fromCurrencyInputChanged()
         getConvertedCurrencySubscriber()
+        attachDetailsButtonClick()
+    }
+
+
+    private fun attachDetailsButtonClick() {
+        binding.fragmentCurrencyConverterDetailsBtn.setOnClickListener {
+            if (toCurrency.isNotEmpty() && fromCurrency.isNotEmpty()) {
+                val action =
+                    CurrencyConverterFragmentDirections.actionCurrencyConverterFragmentToDetailsFragment(
+                        fromCurrency,
+                        toCurrency
+                    )
+                findNavController().navigate(action)
+            }
+        }
+    }
+
+    private fun attachSwapButtonClick() {
+        binding.fragmentCurrencyConverterArrowIv.setOnClickListener {
+            if (fromCurrencySpinnerIndex != 0 && toCurrencySpinnerIndex != 0) {
+                val newFromIndex = toCurrency
+                val newToIndex = fromCurrency
+
+                binding.fragmentCurrencyConverterFromAtv.setText(newFromIndex)
+                binding.fragmentCurrencyConverterToAtv.setText(newToIndex)
+
+
+            }
+        }
     }
 
 
@@ -67,7 +101,7 @@ class CurrencyConverterFragment : Fragment() {
 
 
     private fun toCurrencySelected() {
-       binding.fragmentCurrencyConverterToAtv.onItemClickListener =
+        binding.fragmentCurrencyConverterToAtv.onItemClickListener =
             AdapterView.OnItemClickListener { parent, view, position, id ->
                 toCurrencySpinnerIndex = parent.selectedItemPosition + 1
                 toCurrency = parent.getItemAtPosition(position).toString()
@@ -79,17 +113,14 @@ class CurrencyConverterFragment : Fragment() {
     }
 
 
-
-
     private fun getConvertedCurrency() {
-        if(toCurrency.isNotEmpty() && fromCurrency.isNotEmpty()){
+        if (toCurrency.isNotEmpty() && fromCurrency.isNotEmpty()) {
             val amount = binding.fragmentCurrencyConverterFromValueEt.text.toString()
-            println("This amount $amount $fromCurrency $toCurrency")
-            viewModel.getConvertedCurrency(fromCurrency,toCurrency,amount)
+            viewModel.getConvertedCurrency(fromCurrency, toCurrency, amount)
         }
     }
 
-    private fun fromCurrencyInputChanged(){
+    private fun fromCurrencyInputChanged() {
         binding.fragmentCurrencyConverterFromValueEt.addTextChangedListener(object : TextWatcher {
             var debounceTimer: CountDownTimer? = null
 
@@ -102,7 +133,7 @@ class CurrencyConverterFragment : Fragment() {
                 debounceTimer = object : CountDownTimer(1000, 1500) {
                     override fun onTick(millisUntilFinished: Long) {}
                     override fun onFinish() {
-                       getConvertedCurrency()
+                        getConvertedCurrency()
                     }
                 }.start()
             }
@@ -115,10 +146,15 @@ class CurrencyConverterFragment : Fragment() {
             viewModel.getSymbolsResponse.collectLatest {
                 when (it) {
                     is Resource.Success -> {
+                        hideProgressBar(binding.fragmentCurrencyConverterPb)
                         it.data.symbols?.keys?.let { it1 -> setUpCurrencySymbols(it1.toList()) }
                     }
-                    else -> {
-
+                    is Resource.Loading -> {
+                        showProgressBar(binding.fragmentCurrencyConverterPb)
+                    }
+                    is Resource.Error -> {
+                        hideProgressBar(binding.fragmentCurrencyConverterPb)
+                        showErrorSnackBar(binding.fragmentCurrencyConverter, it.message)
                     }
                 }
             }
@@ -130,10 +166,15 @@ class CurrencyConverterFragment : Fragment() {
             viewModel.getConvertedCurrencyResponse.collectLatest {
                 when (it) {
                     is Resource.Success -> {
-                       binding.fragmentCurrencyConverterToValueEt.setText(it.data.result.toString())
+                        hideProgressBar(binding.fragmentCurrencyConverterPb)
+                        binding.fragmentCurrencyConverterToValueEt.setText(it.data.result.toString())
                     }
-                    else -> {
-
+                    is Resource.Loading -> {
+                        showProgressBar(binding.fragmentCurrencyConverterPb)
+                    }
+                    is Resource.Error -> {
+                        hideProgressBar(binding.fragmentCurrencyConverterPb)
+                        showErrorSnackBar(binding.fragmentCurrencyConverter, it.message)
                     }
                 }
             }
