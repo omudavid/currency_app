@@ -34,6 +34,7 @@ class CurrencyConverterFragment : Fragment() {
     private var toCurrencySpinnerIndex = 0
     private var toCurrency = ""
     private var fromCurrency = ""
+    lateinit var symbols: List<String>
 
 
     private val viewModel: CurrencyConverterViewModel by viewModels()
@@ -74,14 +75,19 @@ class CurrencyConverterFragment : Fragment() {
 
     private fun attachSwapButtonClick() {
         binding.fragmentCurrencyConverterArrowIv.setOnClickListener {
-            if (fromCurrencySpinnerIndex != 0 && toCurrencySpinnerIndex != 0) {
+            if (toCurrency.isNotEmpty() && fromCurrency.isNotEmpty()) {
                 val newFromIndex = toCurrency
                 val newToIndex = fromCurrency
-
+                toCurrency = newToIndex
+                fromCurrency = newFromIndex
                 binding.fragmentCurrencyConverterFromAtv.setText(newFromIndex)
                 binding.fragmentCurrencyConverterToAtv.setText(newToIndex)
 
+                setUpCurrencySymbols(symbols)
+                binding.fragmentCurrencyConverterFromAtv.dismissDropDown()
+                binding.fragmentCurrencyConverterToAtv.dismissDropDown()
 
+                getConvertedCurrency()
             }
         }
     }
@@ -148,6 +154,8 @@ class CurrencyConverterFragment : Fragment() {
                     is Resource.Success -> {
                         hideProgressBar(binding.fragmentCurrencyConverterPb)
                         it.data.symbols?.keys?.let { it1 -> setUpCurrencySymbols(it1.toList()) }
+                        it.data.symbols?.keys?.let { it1 -> symbols = it1.toList() }
+
                     }
                     is Resource.Loading -> {
                         showProgressBar(binding.fragmentCurrencyConverterPb)
@@ -168,6 +176,7 @@ class CurrencyConverterFragment : Fragment() {
                     is Resource.Success -> {
                         hideProgressBar(binding.fragmentCurrencyConverterPb)
                         binding.fragmentCurrencyConverterToValueEt.setText(it.data.result.toString())
+
                     }
                     is Resource.Loading -> {
                         showProgressBar(binding.fragmentCurrencyConverterPb)

@@ -22,7 +22,7 @@ class DetailsFragment : Fragment() {
     private var _binding: FragmentDetailsBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: DetailsDetailViewModel by viewModels()
+    private val viewModel: DetailsViewModel by viewModels()
     private lateinit var fromCurrency: String
     private lateinit var toCurrency: String
     private lateinit var currentDate: String

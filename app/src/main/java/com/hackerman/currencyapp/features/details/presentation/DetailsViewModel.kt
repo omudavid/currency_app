@@ -16,7 +16,7 @@ import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
-class DetailsDetailViewModel @Inject constructor(
+class DetailsViewModel @Inject constructor(
     private val getPopularCurrenciesUseCase: GetPopularCurrenciesUseCase,
     private val getHistoricDataUseCase: GetHistoricDataUseCase
 ) : ViewModel() {
